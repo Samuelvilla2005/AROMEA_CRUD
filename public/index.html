@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Essence — Finanzas de Perfumes</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="bg-decor"></div>
+
+  <header class="topbar">
+    <div class="brand">
+      <span class="brand-icon">◆</span>
+      <h1>Essence <span>Finanzas</span></h1>
+    </div>
+  </header>
+
+  <nav class="tabs">
+    <button class="tab-btn active" data-tab="propios">Perfumes Propios</button>
+    <button class="tab-btn" data-tab="deben-propios">Nos Deben</button>
+    <button class="tab-btn" data-tab="mayoristas">Mayoristas</button>
+    <button class="tab-btn" data-tab="deben-mayoristas">Debemos a Mayoristas</button>
+  </nav>
+
+  <main>
+    <!-- PROPIOS -->
+    <section class="tab-content active" id="propios">
+      <div class="section-head">
+        <h2>Perfumes Propios</h2>
+        <button class="btn-primary" onclick="abrirModalPerfume('propio')">+ Agregar Perfume</button>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>ID</th><th>Nombre</th><th>P. Mayor</th><th>P. Venta</th><th>Fecha Venta</th><th>Abonado</th><th>Estado</th><th>Acciones</th></tr></thead>
+          <tbody id="tbody-propios"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- DEBEN PROPIOS -->
+    <section class="tab-content" id="deben-propios">
+      <div class="section-head"><h2>Perfumes que aún nos deben</h2></div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>ID</th><th>Nombre</th><th>P. Venta</th><th>Abonado</th><th>Saldo</th><th>Acción</th></tr></thead>
+          <tbody id="tbody-deben-propios"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- MAYORISTAS -->
+    <section class="tab-content" id="mayoristas">
+      <div class="section-head">
+        <h2>Perfumes de Mayoristas</h2>
+        <button class="btn-primary" onclick="abrirModalPerfume('mayorista')">+ Agregar Perfume</button>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>ID</th><th>Nombre</th><th>P. Mayor</th><th>P. Venta</th><th>Fecha Venta</th><th>Abonado</th><th>Estado</th><th>Acciones</th></tr></thead>
+          <tbody id="tbody-mayoristas"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- DEBEN MAYORISTAS -->
+    <section class="tab-content" id="deben-mayoristas">
+      <div class="section-head"><h2>Lo que aún debemos a mayoristas</h2></div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>ID</th><th>Nombre</th><th>P. Venta</th><th>Abonado</th><th>Saldo</th><th>Acción</th></tr></thead>
+          <tbody id="tbody-deben-mayoristas"></tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <!-- MODAL PERFUME -->
+  <div class="modal-overlay" id="modal-perfume">
+    <div class="modal">
+      <h3 id="modal-title">Agregar Perfume</h3>
+      <input type="hidden" id="perfume-id">
+      <input type="hidden" id="perfume-tipo">
+      <label>Nombre</label>
+      <input type="text" id="f-nombre" placeholder="Nombre del perfume">
+      <label>Precio por Mayor</label>
+      <input type="number" id="f-precio-mayor" placeholder="0.00" step="0.01">
+      <label>Precio de Venta</label>
+      <input type="number" id="f-precio-venta" placeholder="0.00" step="0.01">
+      <label>Fecha de Venta</label>
+      <input type="date" id="f-fecha-venta">
+      <div class="modal-actions">
+        <button class="btn-secondary" onclick="cerrarModal('modal-perfume')">Cancelar</button>
+        <button class="btn-primary" onclick="guardarPerfume()">Guardar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL ABONO -->
+  <div class="modal-overlay" id="modal-abono">
+    <div class="modal">
+      <h3>Agregar Abono</h3>
+      <input type="hidden" id="abono-perfume-id">
+      <label>Monto a abonar</label>
+      <input type="number" id="f-monto-abono" placeholder="0.00" step="0.01">
+      <div class="modal-actions">
+        <button class="btn-secondary" onclick="cerrarModal('modal-abono')">Cancelar</button>
+        <button class="btn-primary" onclick="guardarAbono()">Abonar</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
