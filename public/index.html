@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Essence — Finanzas de Perfumes</title>
+<title>Finanzas Aroméa</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="style.css">
@@ -14,7 +14,7 @@
   <header class="topbar">
     <div class="brand">
       <span class="brand-icon">◆</span>
-      <h1>Essence <span>Finanzas</span></h1>
+      <h1>Aroméa <span>Finanzas</span></h1>
     </div>
   </header>
 
@@ -22,7 +22,8 @@
     <button class="tab-btn active" data-tab="propios">Perfumes Propios</button>
     <button class="tab-btn" data-tab="deben-propios">Nos Deben</button>
     <button class="tab-btn" data-tab="mayoristas">Mayoristas</button>
-    <button class="tab-btn" data-tab="deben-mayoristas">Debemos a Mayoristas</button>
+    <button class="tab-btn" data-tab="deben-mayoristas">Nos deben Mayoristas</button>
+    <button class="tab-btn" data-tab="reportes-ventas">Reporte de ventas</button>
   </nav>
 
   <main>
@@ -67,12 +68,92 @@
 
     <!-- DEBEN MAYORISTAS -->
     <section class="tab-content" id="deben-mayoristas">
-      <div class="section-head"><h2>Lo que aún debemos a mayoristas</h2></div>
+      <div class="section-head"><h2>Lo que aún nos deben mayoristas</h2></div>
       <div class="table-wrap">
         <table>
           <thead><tr><th>ID</th><th>Nombre</th><th>P. Venta</th><th>Abonado</th><th>Saldo</th><th>Acción</th></tr></thead>
           <tbody id="tbody-deben-mayoristas"></tbody>
         </table>
+      </div>
+    </section>
+
+    <!-- REPORTE DE VENTAS -->
+    <section class="tab-content reportes-section" id="reportes-ventas">
+      <div class="section-head report-head">
+        <div>
+          <h2>Reporte de ventas</h2>
+          <p class="section-subtitle">Solo se cuentan perfumes con estado <strong>Pagado</strong>.</p>
+        </div>
+        <button class="btn-primary" id="btn-descargar-reporte">↓ Descargar extracto</button>
+      </div>
+
+      <div class="report-filters">
+        <div class="filter-group">
+          <label for="reporte-mes">Mes a consultar</label>
+          <select id="reporte-mes"></select>
+        </div>
+        <div class="filter-group">
+          <label for="reporte-tipo">Tipo de venta</label>
+          <select id="reporte-tipo">
+            <option value="todos">Todos</option>
+            <option value="propio">Perfumes propios</option>
+            <option value="mayorista">Mayoristas</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="report-kpis">
+        <div class="report-card">
+          <span class="report-card-label">Perfumes vendidos</span>
+          <strong id="kpi-unidades">0</strong>
+          <small>unidades pagadas</small>
+        </div>
+        <div class="report-card">
+          <span class="report-card-label">Ventas del mes</span>
+          <strong id="kpi-ventas">$0</strong>
+          <small>valor de venta</small>
+        </div>
+        <div class="report-card">
+          <span class="report-card-label">Ticket promedio</span>
+          <strong id="kpi-promedio">$0</strong>
+          <small>por perfume</small>
+        </div>
+        <div class="report-card">
+          <span class="report-card-label">Mes seleccionado</span>
+          <strong id="kpi-mes">—</strong>
+          <small>extracto activo</small>
+        </div>
+      </div>
+
+      <div class="report-grid">
+        <div class="report-panel">
+          <div class="panel-head">
+            <div>
+              <h3>Ventas por mes</h3>
+              <p>Comparación histórica de perfumes pagados</p>
+            </div>
+          </div>
+          <div class="chart-wrap">
+            <div id="ventas-chart" class="bar-chart" aria-label="Gráfica de barras de ventas por mes"></div>
+          </div>
+        </div>
+
+        <div class="report-panel">
+          <div class="panel-head">
+            <div>
+              <h3>Extracto del mes</h3>
+              <p id="extracto-descripcion">Detalle de las ventas pagadas</p>
+            </div>
+          </div>
+          <div class="table-wrap report-table-wrap">
+            <table>
+              <thead>
+                <tr><th>Fecha</th><th>Perfume</th><th>Tipo</th><th>Valor</th></tr>
+              </thead>
+              <tbody id="tbody-reporte"></tbody>
+            </table>
+          </div>
+        </div>
       </div>
     </section>
   </main>

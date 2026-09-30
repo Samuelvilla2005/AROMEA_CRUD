@@ -301,3 +301,175 @@ tbody tr:hover { background: #fafafa; }
   .brand h1 { font-size: 1.1rem; }
   .tab-btn { font-size: 0.75rem; padding: 8px 12px; }
 }
+
+
+/* ================= REPORTE DE VENTAS ================= */
+.reportes-section { padding-bottom: 30px; }
+.report-head { align-items: center; }
+.section-subtitle {
+  margin-top: 5px;
+  color: #777;
+  font-size: .88rem;
+}
+.report-filters {
+  display: flex;
+  gap: 14px;
+  flex-wrap: wrap;
+  margin: 4px 0 18px;
+}
+.filter-group {
+  min-width: 210px;
+  flex: 0 1 260px;
+}
+.filter-group label {
+  display: block;
+  margin-bottom: 7px;
+  font-size: .78rem;
+  font-weight: 600;
+  color: #666;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+}
+.filter-group select {
+  width: 100%;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: #fff;
+  color: var(--text);
+  padding: 11px 12px;
+  font: inherit;
+  outline: none;
+}
+.filter-group select:focus { border-color: #999; }
+
+.report-kpis {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 14px;
+  margin-bottom: 18px;
+}
+.report-card {
+  background: rgba(255,255,255,.94);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 18px;
+  box-shadow: 0 8px 24px rgba(0,0,0,.045);
+}
+.report-card-label {
+  display: block;
+  color: #777;
+  font-size: .78rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+}
+.report-card strong {
+  display: block;
+  margin: 7px 0 3px;
+  font-size: 1.65rem;
+  line-height: 1.1;
+}
+.report-card small { color: #999; font-size: .78rem; }
+
+.report-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
+  gap: 18px;
+}
+.report-panel {
+  min-width: 0;
+  background: rgba(255,255,255,.94);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  box-shadow: 0 8px 24px rgba(0,0,0,.045);
+  overflow: hidden;
+}
+.panel-head {
+  padding: 18px 18px 10px;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+.panel-head h3 { margin: 0; font-size: 1rem; }
+.panel-head p { margin: 4px 0 0; color: #888; font-size: .78rem; }
+
+.chart-wrap {
+  min-height: 300px;
+  padding: 12px 18px 22px;
+  overflow-x: auto;
+}
+.bar-chart {
+  min-width: 620px;
+  height: 260px;
+  display: flex;
+  align-items: flex-end;
+  gap: 10px;
+  padding: 16px 8px 0;
+  border-bottom: 1px solid #ddd;
+}
+.bar-item {
+  height: 100%;
+  flex: 1 0 34px;
+  min-width: 34px;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 6px;
+}
+.bar-value {
+  font-size: .7rem;
+  color: #555;
+  font-weight: 600;
+}
+.bar {
+  width: min(42px, 75%);
+  min-height: 2px;
+  border-radius: 7px 7px 0 0;
+  background: #111;
+  transition: height .2s ease, opacity .2s ease;
+}
+.bar:hover { opacity: .72; }
+.bar-label {
+  font-size: .68rem;
+  color: #777;
+  white-space: nowrap;
+}
+.bar-item.selected .bar { background: #555; }
+.bar-item.selected .bar-label,
+.bar-item.selected .bar-value { color: #111; font-weight: 700; }
+
+.report-table-wrap { max-height: 390px; overflow: auto; }
+.report-table-wrap table { margin: 0; }
+.report-empty {
+  text-align: center;
+  color: #888;
+  padding: 38px 15px !important;
+}
+.report-type {
+  display: inline-flex;
+  padding: 4px 8px;
+  border-radius: 99px;
+  background: #f2f2f2;
+  color: #555;
+  font-size: .72rem;
+  white-space: nowrap;
+}
+
+@media (max-width: 1050px) {
+  .report-kpis { grid-template-columns: repeat(2, 1fr); }
+  .report-grid { grid-template-columns: 1fr; }
+}
+@media (max-width: 700px) {
+  .report-head { align-items: flex-start; gap: 12px; }
+  .report-head .btn-primary { width: 100%; }
+  .report-kpis { grid-template-columns: 1fr 1fr; gap: 9px; }
+  .report-card { padding: 14px; }
+  .report-card strong { font-size: 1.3rem; }
+  .report-card-label { font-size: .68rem; }
+  .filter-group { flex: 1 1 100%; }
+  .chart-wrap { padding-left: 8px; padding-right: 8px; }
+}
+@media (max-width: 440px) {
+  .report-kpis { grid-template-columns: 1fr; }
+}

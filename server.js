@@ -189,4 +189,30 @@ app.get('/api/abonos/:perfume_id', async (req, res) => {
   }
 });
 
+
+// Reporte histórico de ventas: solo perfumes completamente pagados.
+app.get('/api/reportes/ventas', async (req, res) => {
+  if (!requireDB(res)) return;
+  try {
+    const result = await pool.query(`
+      SELECT
+        id,
+        tipo,
+        nombre,
+        precio_mayor,
+        precio_venta,
+        fecha_venta,
+        monto_abonado
+      FROM perfumes
+      WHERE fecha_venta IS NOT NULL
+        AND monto_abonado >= precio_venta
+      ORDER BY fecha_venta DESC, id DESC
+    `);
+    res.json(result.rows);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
 app.listen(PORT, () => console.log(`🚀 Servidor corriendo en el puerto ${PORT}`));
