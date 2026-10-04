@@ -24,6 +24,7 @@
     <button class="tab-btn" data-tab="mayoristas">Mayoristas</button>
     <button class="tab-btn" data-tab="deben-mayoristas">Nos deben Mayoristas</button>
     <button class="tab-btn" data-tab="reportes-ventas">Reporte de ventas</button>
+    <button class="tab-btn" data-tab="entradas-salidas">Entradas y Salidas</button>
   </nav>
 
   <main>
@@ -156,6 +157,61 @@
         </div>
       </div>
     </section>
+
+    <!-- ENTRADAS Y SALIDAS -->
+    <section class="tab-content caja-section" id="entradas-salidas">
+      <div class="section-head report-head">
+        <div>
+          <h2>Entradas y Salidas</h2>
+          <p class="section-subtitle">Control de efectivo en caja. Los extractos se conservan 4 meses.</p>
+        </div>
+        <div class="caja-head-actions">
+          <button class="btn-secondary" id="btn-ajustar-saldo">Ajustar saldo</button>
+          <button class="btn-primary btn-entrada" id="btn-entrada">+ Entrada</button>
+          <button class="btn-primary btn-salida" id="btn-salida">− Salida</button>
+        </div>
+      </div>
+
+      <div class="caja-saldo-card">
+        <span class="caja-saldo-label">Saldo actual en caja</span>
+        <strong id="caja-saldo-actual">$0,00</strong>
+        <small id="caja-saldo-fecha">—</small>
+      </div>
+
+      <div class="caja-extracto-bar">
+        <div class="filter-group">
+          <label for="caja-mes-extracto">Extracto del mes</label>
+          <select id="caja-mes-extracto"></select>
+        </div>
+        <button class="btn-primary" id="btn-descargar-caja">↓ Descargar extracto</button>
+      </div>
+
+      <div class="caja-resumen-mes" id="caja-resumen-mes">
+        <div class="caja-resumen-item entrada">
+          <span>Entradas del mes</span>
+          <strong id="caja-mes-entradas">$0</strong>
+        </div>
+        <div class="caja-resumen-item salida">
+          <span>Salidas del mes</span>
+          <strong id="caja-mes-salidas">$0</strong>
+        </div>
+        <div class="caja-resumen-item neto">
+          <span>Neto del mes</span>
+          <strong id="caja-mes-neto">$0</strong>
+        </div>
+      </div>
+
+      <div class="panel-head caja-historial-head">
+        <div>
+          <h3>Historial de movimientos</h3>
+          <p>Verde = entrada · Rojo = salida (estilo extracto bancario)</p>
+        </div>
+      </div>
+
+      <div class="caja-historial" id="caja-historial">
+        <div class="caja-historial-vacio">Aún no hay movimientos registrados</div>
+      </div>
+    </section>
   </main>
 
   <!-- MODAL PERFUME -->
@@ -189,6 +245,40 @@
       <div class="modal-actions">
         <button class="btn-secondary" onclick="cerrarModal('modal-abono')">Cancelar</button>
         <button class="btn-primary" onclick="guardarAbono()">Abonar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL ENTRADA / SALIDA -->
+  <div class="modal-overlay" id="modal-caja">
+    <div class="modal">
+      <h3 id="modal-caja-title">Registrar movimiento</h3>
+      <input type="hidden" id="caja-tipo">
+      <label>Monto</label>
+      <input type="number" id="f-caja-monto" placeholder="0.00" step="0.01" min="0.01">
+      <label>Asunto</label>
+      <input type="text" id="f-caja-asunto" placeholder="Ej: Venta del día, Pago proveedor…">
+      <div id="caja-motivo-wrap" style="display:none">
+        <label>Motivo de la salida <span class="req">*</span></label>
+        <textarea id="f-caja-motivo" rows="3" placeholder="Explica por qué se saca este dinero (obligatorio)"></textarea>
+      </div>
+      <div class="modal-actions">
+        <button class="btn-secondary" onclick="cerrarModal('modal-caja')">Cancelar</button>
+        <button class="btn-primary" id="btn-guardar-caja" onclick="guardarMovimientoCaja()">Guardar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL AJUSTAR SALDO -->
+  <div class="modal-overlay" id="modal-ajustar-saldo">
+    <div class="modal">
+      <h3>Ajustar saldo de caja</h3>
+      <p class="modal-hint">Define el monto total que hay actualmente en caja. Si hay diferencia con el saldo anterior, se registrará un movimiento de ajuste.</p>
+      <label>Nuevo saldo</label>
+      <input type="number" id="f-nuevo-saldo" placeholder="0.00" step="0.01" min="0">
+      <div class="modal-actions">
+        <button class="btn-secondary" onclick="cerrarModal('modal-ajustar-saldo')">Cancelar</button>
+        <button class="btn-primary" onclick="guardarAjusteSaldo()">Guardar saldo</button>
       </div>
     </div>
   </div>

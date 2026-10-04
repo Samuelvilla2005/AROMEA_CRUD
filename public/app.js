@@ -6,6 +6,8 @@ document.querySelectorAll('.tab-btn').forEach(btn => {
     document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
     btn.classList.add('active');
     document.getElementById(btn.dataset.tab).classList.add('active');
+    if (btn.dataset.tab === 'entradas-salidas') cargarCaja();
+    if (btn.dataset.tab === 'reportes-ventas') cargarReporteVentas();
   });
 });
 
@@ -215,8 +217,13 @@ async function cargarReporteVentas() {
 
 function claveMes(fecha) {
   if (!fecha) return '';
-  const d = new Date(`${String(fecha).substring(0, 10)}T00:00:00`);
+  const s = String(fecha);
+  // Formatos ISO / Postgres: "2026-09-30T17:00:00.000Z" o "2026-09-30 17:00:00"
+  const m = s.match(/^(\d{4})-(\d{2})-(\d{2})/);
+  if (m) return `${m[1]}-${m[2]}`;
+  const d = new Date(fecha);
   if (Number.isNaN(d.getTime())) return '';
+  // Usar componentes locales para no cambiar de mes por UTC
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
 }
 
@@ -372,3 +379,285 @@ document.getElementById('reporte-tipo')?.addEventListener('change', renderReport
 document.getElementById('btn-descargar-reporte')?.addEventListener('click', descargarExtracto);
 
 cargarReporteVentas();
+
+
+/* ================= ENTRADAS Y SALIDAS (CAJA) ================= */
+let cajaData = { saldo: 0, movimientos: [], actualizado_en: null };
+let cajaMesSeleccionado = '';
+
+function mesesDisponiblesCaja() {
+  const ahora = new Date();
+  const lista = [];
+  for (let i = 0; i < 4; i++) {
+    const d = new Date(ahora.getFullYear(), ahora.getMonth() - i, 1);
+    const clave = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+    lista.push(clave);
+  }
+  return lista;
+}
+
+function fmtFechaHora(f) {
+  if (!f) return '—';
+  const d = new Date(f);
+  if (Number.isNaN(d.getTime())) return '—';
+  return d.toLocaleString('es-CO', {
+    day: '2-digit',
+    month: 'short',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit'
+  });
+}
+
+async function cargarCaja() {
+  try {
+    cajaData = await api(`${API}/caja`);
+  } catch (err) {
+    console.error('Error al cargar caja:', err);
+    cajaData = { saldo: 0, movimientos: [], actualizado_en: null };
+  }
+  renderCaja();
+}
+
+function renderCaja() {
+  const saldoEl = document.getElementById('caja-saldo-actual');
+  const fechaEl = document.getElementById('caja-saldo-fecha');
+  if (!saldoEl) return;
+
+  saldoEl.textContent = fmt(cajaData.saldo);
+  fechaEl.textContent = cajaData.actualizado_en
+    ? `Actualizado: ${fmtFechaHora(cajaData.actualizado_en)}`
+    : 'Sin movimientos aún';
+
+  prepararSelectorMesesCaja();
+  renderHistorialCaja();
+  actualizarResumenMesCaja();
+}
+
+function prepararSelectorMesesCaja() {
+  const select = document.getElementById('caja-mes-extracto');
+  if (!select) return;
+  const meses = mesesDisponiblesCaja();
+  const anterior = cajaMesSeleccionado;
+  select.innerHTML = meses.map(m =>
+    `<option value="${m}">${nombreMes(m)}</option>`
+  ).join('');
+  const ahora = new Date();
+  const actual = `${ahora.getFullYear()}-${String(ahora.getMonth() + 1).padStart(2, '0')}`;
+  cajaMesSeleccionado = meses.includes(anterior) ? anterior : actual;
+  select.value = cajaMesSeleccionado;
+}
+
+function movimientosDelMes(mes) {
+  return (cajaData.movimientos || []).filter(m => claveMes(m.fecha) === mes);
+}
+
+function actualizarResumenMesCaja() {
+  const movs = movimientosDelMes(cajaMesSeleccionado);
+  const entradas = movs.filter(m => m.tipo === 'entrada').reduce((s, m) => s + Number(m.monto), 0);
+  const salidas = movs.filter(m => m.tipo === 'salida').reduce((s, m) => s + Number(m.monto), 0);
+  const neto = entradas - salidas;
+
+  document.getElementById('caja-mes-entradas').textContent = fmt(entradas);
+  document.getElementById('caja-mes-salidas').textContent = fmt(salidas);
+  const netoEl = document.getElementById('caja-mes-neto');
+  netoEl.textContent = fmt(neto);
+  netoEl.className = neto >= 0 ? 'neto-positivo' : 'neto-negativo';
+}
+
+function renderHistorialCaja() {
+  const cont = document.getElementById('caja-historial');
+  if (!cont) return;
+  let movs = movimientosDelMes(cajaMesSeleccionado);
+
+  // El historial respeta siempre el mes seleccionado. Las fechas que entrega
+  // el servidor usan un formato ISO consistente, por lo que no necesitamos
+  // mezclar movimientos de otros meses como respaldo.
+  if (!movs.length) {
+    cont.innerHTML = '<div class="caja-historial-vacio">No hay movimientos en este mes</div>';
+    return;
+  }
+
+  // Más recientes primero
+  const ordenados = [...movs].sort((a, b) =>
+    String(b.fecha).localeCompare(String(a.fecha)) || (Number(b.id) - Number(a.id))
+  );
+
+  cont.innerHTML = ordenados.map(m => {
+    const esEntrada = m.tipo === 'entrada';
+    const signo = esEntrada ? '+' : '−';
+    const clase = esEntrada ? 'mov-entrada' : 'mov-salida';
+    const motivoHtml = m.motivo
+      ? `<div class="mov-motivo">${escapeHtml(m.motivo)}</div>`
+      : '';
+    return `
+      <div class="mov-item ${clase}">
+        <div class="mov-left">
+          <span class="mov-dot"></span>
+          <div class="mov-info">
+            <div class="mov-asunto">${escapeHtml(m.asunto)}</div>
+            ${motivoHtml}
+            <div class="mov-fecha">${fmtFechaHora(m.fecha)}</div>
+          </div>
+        </div>
+        <div class="mov-right">
+          <div class="mov-monto">${signo}${fmt(m.monto)}</div>
+          <div class="mov-saldo">Saldo: ${fmt(m.saldo_despues)}</div>
+        </div>
+      </div>`;
+  }).join('');
+}
+
+function abrirModalCaja(tipo) {
+  document.getElementById('caja-tipo').value = tipo;
+  document.getElementById('modal-caja-title').textContent =
+    tipo === 'entrada' ? 'Registrar entrada de dinero' : 'Registrar salida de dinero';
+  document.getElementById('f-caja-monto').value = '';
+  document.getElementById('f-caja-asunto').value = '';
+  document.getElementById('f-caja-motivo').value = '';
+  const wrap = document.getElementById('caja-motivo-wrap');
+  wrap.style.display = tipo === 'salida' ? 'block' : 'none';
+  const btn = document.getElementById('btn-guardar-caja');
+  btn.className = tipo === 'salida' ? 'btn-primary btn-salida' : 'btn-primary btn-entrada';
+  btn.textContent = tipo === 'salida' ? 'Sacar dinero' : 'Ingresar dinero';
+  document.getElementById('modal-caja').classList.add('show');
+}
+
+async function guardarMovimientoCaja() {
+  const tipo = document.getElementById('caja-tipo').value;
+  const monto = Number(document.getElementById('f-caja-monto').value);
+  const asunto = document.getElementById('f-caja-asunto').value.trim();
+  const motivo = document.getElementById('f-caja-motivo').value.trim();
+
+  if (!monto || monto <= 0) {
+    alert('Ingresa un monto válido mayor a 0');
+    return;
+  }
+  if (!asunto) {
+    alert('El asunto es obligatorio');
+    return;
+  }
+  if (tipo === 'salida' && !motivo) {
+    alert('Para sacar dinero es obligatorio explicar el motivo');
+    return;
+  }
+
+  const btnGuardar = document.getElementById('btn-guardar-caja');
+  const textoOriginal = btnGuardar.textContent;
+  btnGuardar.disabled = true;
+  btnGuardar.textContent = 'Guardando…';
+
+  try {
+    // El servidor devuelve el movimiento ya insertado en PostgreSQL.
+    // Lo usamos directamente para que el historial se actualice sin depender
+    // de una segunda consulta o de un desfase de fechas/zona horaria.
+    const respuesta = await api(`${API}/caja/movimientos`, {
+      method: 'POST',
+      body: JSON.stringify({ tipo, monto, asunto, motivo: motivo || null })
+    });
+
+    const movimiento = respuesta && respuesta.movimiento;
+    if (!movimiento) {
+      throw new Error('El servidor confirmó la operación, pero no devolvió el movimiento registrado.');
+    }
+
+    const ahora = new Date();
+    cajaMesSeleccionado =
+      `${ahora.getFullYear()}-${String(ahora.getMonth() + 1).padStart(2, '0')}`;
+
+    // Actualización inmediata de la interfaz con el registro confirmado.
+    cajaData.saldo = Number(respuesta.saldo ?? cajaData.saldo);
+    cajaData.actualizado_en = movimiento.fecha || new Date().toISOString();
+    cajaData.movimientos = Array.isArray(cajaData.movimientos)
+      ? cajaData.movimientos.filter(m => Number(m.id) !== Number(movimiento.id))
+      : [];
+    cajaData.movimientos.unshift(movimiento);
+
+    cerrarModal('modal-caja');
+    renderCaja();
+
+    // Sincronización final con PostgreSQL. Si esta segunda lectura falla,
+    // conservamos el movimiento confirmado que ya está visible en pantalla.
+    try {
+      await cargarCaja();
+    } catch (syncError) {
+      console.warn('Movimiento guardado; no se pudo sincronizar el historial:', syncError);
+    }
+  } catch (err) {
+    console.error(err);
+    alert('No se pudo registrar el movimiento:\n' + err.message);
+  } finally {
+    btnGuardar.disabled = false;
+    btnGuardar.textContent = textoOriginal;
+  }
+}
+
+function abrirModalAjusteSaldo() {
+  document.getElementById('f-nuevo-saldo').value = Number(cajaData.saldo || 0);
+  document.getElementById('modal-ajustar-saldo').classList.add('show');
+}
+
+async function guardarAjusteSaldo() {
+  const saldo = Number(document.getElementById('f-nuevo-saldo').value);
+  if (Number.isNaN(saldo) || saldo < 0) {
+    alert('Ingresa un saldo válido (0 o mayor)');
+    return;
+  }
+  try {
+    await api(`${API}/caja/saldo`, {
+      method: 'PUT',
+      body: JSON.stringify({ saldo })
+    });
+    cerrarModal('modal-ajustar-saldo');
+    await cargarCaja();
+  } catch (err) {
+    console.error(err);
+    alert('No se pudo ajustar el saldo:\n' + err.message);
+  }
+}
+
+async function descargarExtractoCaja() {
+  try {
+    const data = await api(`${API}/caja/extracto?mes=${encodeURIComponent(cajaMesSeleccionado)}`);
+    const encabezado = ['Fecha', 'Tipo', 'Asunto', 'Motivo', 'Monto', 'Saldo después'];
+    const filas = data.movimientos.map(m => [
+      fmtFechaHora(m.fecha),
+      m.tipo === 'entrada' ? 'Entrada' : 'Salida',
+      m.asunto || '',
+      m.motivo || '',
+      Number(m.monto).toFixed(2),
+      Number(m.saldo_despues).toFixed(2)
+    ]);
+    filas.push([]);
+    filas.push(['Total entradas', '', '', '', Number(data.total_entradas).toFixed(2), '']);
+    filas.push(['Total salidas', '', '', '', Number(data.total_salidas).toFixed(2), '']);
+    filas.push(['Neto del mes', '', '', '', Number(data.neto).toFixed(2), '']);
+
+    const csv = [encabezado, ...filas]
+      .map(row => row.map(valor => `"${String(valor ?? '').replace(/"/g, '""')}"`).join(';'))
+      .join('\r\n');
+
+    const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `extracto-caja-${cajaMesSeleccionado}.csv`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+  } catch (err) {
+    console.error(err);
+    alert('No se pudo descargar el extracto:\n' + err.message);
+  }
+}
+
+document.getElementById('btn-entrada')?.addEventListener('click', () => abrirModalCaja('entrada'));
+document.getElementById('btn-salida')?.addEventListener('click', () => abrirModalCaja('salida'));
+document.getElementById('btn-ajustar-saldo')?.addEventListener('click', abrirModalAjusteSaldo);
+document.getElementById('btn-descargar-caja')?.addEventListener('click', descargarExtractoCaja);
+document.getElementById('caja-mes-extracto')?.addEventListener('change', e => {
+  cajaMesSeleccionado = e.target.value;
+  renderHistorialCaja();
+  actualizarResumenMesCaja();
+});
